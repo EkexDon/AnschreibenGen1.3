@@ -1,0 +1,102 @@
+% ============================================================
+% Professionelle Bewerbungsanschreiben-Vorlage (DIN 5008)
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{lmodern}
+\usepackage[left=25mm, right=20mm, top=27mm, bottom=25mm]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+% Farben
+\definecolor{darkgray}{HTML}{333333}
+\definecolor{accentblue}{HTML}{2B5797}
+
+% Keine Seitennummern
+\pagestyle{empty}
+
+% Hyperlink-Styling
+\hypersetup{
+  colorlinks=true,
+  urlcolor=accentblue,
+  pdfborder={0 0 0}
+}
+
+% ============================================================
+% PLATZHALTER – werden vom Backend ersetzt:
+%   <<ABSENDER_NAME>>
+%   <<ABSENDER_STRASSE>>
+%   <<ABSENDER_ORT>>
+%   <<ABSENDER_TELEFON>>
+%   <<ABSENDER_EMAIL>>
+%   <<EMPFAENGER_FIRMA>>
+%   <<EMPFAENGER_ABTEILUNG>>
+%   <<EMPFAENGER_STRASSE>>
+%   <<EMPFAENGER_ORT>>
+%   <<DATUM>>
+%   <<BETREFF>>
+%   <<ANREDE>>
+%   <<ANSCHREIBEN_TEXT>>
+%   <<GRUSSFORMEL>>
+% ============================================================
+
+\begin{document}
+
+\color{darkgray}
+
+% --- Absender ---
+\begin{flushleft}
+{\large\bfseries <<ABSENDER_NAME>>}\\[2pt]
+{}<<ABSENDER_STRASSE>>\\
+{}<<ABSENDER_ORT>>\\[2pt]
+{}<<ABSENDER_TELEFON>>\\
+{}<<ABSENDER_EMAIL>>
+\end{flushleft}
+
+\vspace{8mm}
+
+% --- Empfänger ---
+\begin{flushleft}
+{}<<EMPFAENGER_FIRMA>>\\
+{}<<EMPFAENGER_ABTEILUNG>>\\
+{}<<EMPFAENGER_STRASSE>>\\
+{}<<EMPFAENGER_ORT>>
+\end{flushleft}
+
+\vspace{6mm}
+
+% --- Datum ---
+\begin{flushright}
+<<DATUM>>
+\end{flushright}
+
+\vspace{4mm}
+
+% --- Betreff ---
+{\large\bfseries\color{accentblue} <<BETREFF>>}
+
+\vspace{6mm}
+
+% --- Anrede ---
+<<ANREDE>>
+
+\vspace{2mm}
+
+% --- Haupttext ---
+<<ANSCHREIBEN_TEXT>>
+
+\vspace{4mm}
+
+% --- Grußformel ---
+<<GRUSSFORMEL>>
+
+\vspace{8mm}
+
+<<ABSENDER_NAME>>
+
+\end{document}

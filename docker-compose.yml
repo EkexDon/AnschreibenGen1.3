@@ -1,0 +1,11 @@
+services:
+  ki-anschreibung:
+    build: .
+    container_name: ki-anschreibung-app
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: unless-stopped
+    volumes:
+      - ./backend/template.tex:/app/backend/template.tex:ro
