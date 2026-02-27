@@ -65,6 +65,7 @@ REGELN:
 6. Verwende KEINE LaTeX-Sonderzeichen falsch – escape & als \& und % als \% und # als \# und _ als \_
 7. Falls Informationen fehlen (z.B. Adresse), verwende sinnvolle Platzhalter wie "[Deine Straße]"
 8. Das Datum soll das aktuelle Datum sein oder "[Datum]" falls unbekannt
+9. WICHTIG: Gib das KOMPLETTE Dokument aus, inkl. \documentclass... am Anfang und \end{document} am Ende.
 
 VORLAGE:
 """ + _TEMPLATE
@@ -128,11 +129,28 @@ Erstelle jetzt das Bewerbungsanschreiben als reinen LaTeX-Code. Ersetze alle <<.
 
     latex_code = response.text.strip()
     
-    # Improved extraction: Look for \documentclass or \begin{document}
-    # Some models might still add markdown or commentary despite instructions.
-    match = re.search(r"(\\documentclass.*\\end\{document\})", latex_code, re.DOTALL)
-    if match:
-        latex_code = match.group(1)
+    # Extraction strategy:
+    # 1. Look for full \documentclass ... \end{document}
+    # 2. Look for \begin{document} ... \end{document} (if preamble is missing, we might need a fallback)
+    # 3. Strip markdown fences if no structured LaTeX blocks were found
+    
+    full_match = re.search(r"(\\documentclass.*\\end\{document\})", latex_code, re.DOTALL)
+    begin_match = re.search(r"(\\begin\{document\}.*\\end\{document\})", latex_code, re.DOTALL)
+    
+    if full_match:
+        latex_code = full_match.group(1)
+    elif begin_match:
+        # If we have begin{document} but no documentclass, Gemini might have skipped the preamble.
+        # We prepend the documentclass and packages from the template if it seems truly missing.
+        body = begin_match.group(1)
+        # Check if \documentclass is present before \begin{document} in the original raw response
+        if r"\documentclass" not in latex_code[:begin_match.start()]:
+            logger.warning("Gemini hat die Präambel weggelassen. Verwende Standard-Präambel aus Vorlage.")
+            preamble = _TEMPLATE.split(r"\begin{document}")[0]
+            latex_code = preamble + body
+        else:
+            # It was there, just maybe not captured by the strict re.DOTALL search
+            latex_code = latex_code[latex_code.find(r"\documentclass"):begin_match.end()]
     else:
         # Fallback: Strip markdown code fences if present
         latex_code = re.sub(r"^```(?:latex|tex)?\s*\n", "", latex_code)
@@ -141,10 +159,11 @@ Erstelle jetzt das Bewerbungsanschreiben als reinen LaTeX-Code. Ersetze alle <<.
     # Basic sanity check
     if r"\begin{document}" not in latex_code:
         # Log the full response for debugging if it's failing
+        snippet = response.text[:500] + "..." if len(response.text) > 500 else response.text
         logger.error("Fehlerhaftes LaTeX von der KI: %s", response.text)
         raise RuntimeError(
-            "Das generierte LaTeX ist unvollständig oder ungültig. "
-            "Bitte versuche es erneut oder passe die Eingaben an."
+            f"Das generierte LaTeX enthält kein \\begin{{document}}. "
+            f"KI-Antwort (Auszug): {snippet}"
         )
 
     return latex_code
