@@ -10,8 +10,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv(Path(__file__).parent / ".env")
+# Load environment variables (local or Render secrets)
+env_path = Path(__file__).parent / ".env"
+render_secret_path = Path("/etc/secrets/.env")
+
+if render_secret_path.exists():
+    load_dotenv(render_secret_path)
+else:
+    load_dotenv(env_path)
 
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware

@@ -9,7 +9,14 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent / ".env")
+# Load environment variables (local or Render secrets)
+env_path = Path(__file__).parent / ".env"
+render_secret_path = Path("/etc/secrets/.env")
+
+if render_secret_path.exists():
+    load_dotenv(render_secret_path)
+else:
+    load_dotenv(env_path)
 
 # ---------------------------------------------------------------------------
 # Gemini client

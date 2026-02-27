@@ -4,7 +4,8 @@ import FileUpload from './components/FileUpload';
 import LoadingOverlay from './components/LoadingOverlay';
 
 // Constants
-const API_URL = '/api/generate';
+const BASE_URL = 'https://genkex.onrender.com';
+const API_URL = `${BASE_URL}/api/generate`;
 
 function App() {
   const [cvFile, setCvFile] = useState(null);
@@ -72,7 +73,7 @@ function App() {
       // Attempt cleanup call (fire & forget)
       const jobId = response.headers.get('X-Job-Id');
       if (jobId) {
-        fetch(`/api/cleanup/${jobId}`, { method: 'DELETE' }).catch(console.error);
+        fetch(`${BASE_URL}/api/cleanup/${jobId}`, { method: 'DELETE' }).catch(console.error);
       }
 
     } catch (err) {
