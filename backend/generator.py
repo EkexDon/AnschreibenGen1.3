@@ -2,6 +2,7 @@
 
 import os
 import re
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -11,6 +12,8 @@ from dotenv import load_dotenv
 
 # Load environment variables (local or Render secrets)
 env_path = Path(__file__).parent / ".env"
+
+logger = logging.getLogger("ki-anschreibung.generator")
 render_secret_path = Path("/etc/secrets/.env")
 
 if render_secret_path.exists():
@@ -37,7 +40,7 @@ def _get_client() -> genai.Client:
     return _client
 
 
-MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
 # ---------------------------------------------------------------------------
 # LaTeX template
@@ -124,16 +127,24 @@ Erstelle jetzt das Bewerbungsanschreiben als reinen LaTeX-Code. Ersetze alle <<.
     )
 
     latex_code = response.text.strip()
-
-    # Strip markdown code fences if the model wrapped output
-    latex_code = re.sub(r"^```(?:latex|tex)?\s*\n", "", latex_code)
-    latex_code = re.sub(r"\n```\s*$", "", latex_code)
+    
+    # Improved extraction: Look for \documentclass or \begin{document}
+    # Some models might still add markdown or commentary despite instructions.
+    match = re.search(r"(\\documentclass.*\\end\{document\})", latex_code, re.DOTALL)
+    if match:
+        latex_code = match.group(1)
+    else:
+        # Fallback: Strip markdown code fences if present
+        latex_code = re.sub(r"^```(?:latex|tex)?\s*\n", "", latex_code)
+        latex_code = re.sub(r"\n```\s*$", "", latex_code)
 
     # Basic sanity check
     if r"\begin{document}" not in latex_code:
+        # Log the full response for debugging if it's failing
+        logger.error("Fehlerhaftes LaTeX von der KI: %s", response.text)
         raise RuntimeError(
-            "Das generierte LaTeX enthält kein \\begin{document}. "
-            "Möglicherweise ein Modellfehler."
+            "Das generierte LaTeX ist unvollständig oder ungültig. "
+            "Bitte versuche es erneut oder passe die Eingaben an."
         )
 
     return latex_code
