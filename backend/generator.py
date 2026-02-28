@@ -116,16 +116,19 @@ Aktuelles Datum f\u00fcr das Anschreiben: {datetime.today().strftime('%d.%m.%Y')
 Erstelle jetzt das Bewerbungsanschreiben als reinen LaTeX-Code. Ersetze alle <<...>> Platzhalter."""
 
     client = _get_client()
-
-    response = await client.aio.models.generate_content(
-        model=MODEL,
-        contents=user_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            temperature=0.4,
-            max_output_tokens=4096,
-        ),
-    )
+    try:
+        response = await client.aio.models.generate_content(
+            model=MODEL,
+            contents=user_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=0.4,
+                max_output_tokens=4096,
+            ),
+        )
+    except Exception as e:
+        logger.error("Gemini API Fehler (%s): %s", type(e).__name__, e)
+        raise
 
     latex_code = response.text.strip()
     

@@ -23,6 +23,7 @@ from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from google.genai.errors import ClientError
 from extractor import extract_text
 from generator import generate_cover_letter
 from compiler import compile_latex, cleanup_job
@@ -129,10 +130,24 @@ async def generate(
             anrede=anrede,
             tonalitaet=tonalitaet,
         )
+    except ClientError as e:
+        logger.error("Gemini API Client-Fehler: %s", e)
+        if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="Die KI-Schnittstelle ist momentan überlastet (Rate Limit). Bitte versuchen Sie es in ca. 1 Minute erneut."
+            )
+        raise HTTPException(status_code=502, detail=f"KI-Client-Fehler: {e}")
     except RuntimeError as e:
         logger.error("Gemini-Fehler: %s", e)
         raise HTTPException(502, f"KI-Fehler: {e}")
     except Exception as e:
+        if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+            logger.warning("Rate-Limit erkannt in generischem Exception-Block: %s", e)
+            raise HTTPException(
+                status_code=429,
+                detail="Die KI-Schnittstelle ist momentan überlastet (Rate Limit). Bitte versuchen Sie es in ca. 1 Minute erneut."
+            )
         logger.error("Unerwarteter Fehler bei Generierung: %s", e)
         raise HTTPException(500, "Interner Fehler bei der Anschreiben-Generierung.")
 
